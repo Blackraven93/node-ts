@@ -2,8 +2,32 @@ import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import { Pool } from 'pg';
 
 dotenv.config();
+
+const pg = new Pool({
+  user: process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.PASSWORD,
+  port: Number(process.env.DB_PORT),
+});
+
+pg.connect((error) => {
+  if (error) console.log(error);
+  else console.log('✅ DB Connect!');
+});
+
+pg.query('select * from users;', (err, res) => {
+  try {
+    console.log(res.rows);
+    pg.end();
+  } catch (error) {
+    console.error(err, error);
+  }
+});
+
 const hostname = process.env.HOST;
 const port = Number(process.env.PORT);
 
