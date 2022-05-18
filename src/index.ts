@@ -14,19 +14,55 @@ const pg = new Pool({
   port: Number(process.env.DB_PORT),
 });
 
-pg.connect((error) => {
-  if (error) console.log(error);
-  else console.log('✅ DB Connect!');
-});
-
-pg.query('select * from users;', (err, res) => {
+pg.query('SELECT * FROM member;', (err, res) => {
   try {
     console.log(res.rows);
-    pg.end();
   } catch (error) {
     console.error(err, error);
   }
 });
+
+interface IUser {
+  userId: number;
+  userName: string;
+  userEmail: string;
+  userPassword: string;
+  created: Date;
+}
+
+const insertMember = async (user: IUser): Promise<boolean> => {
+  try {
+    await pg.connect();
+    await pg.query(
+      `INSERT INTO "member" ("id", "name", "email", "password", "created")  
+        VALUES ($1, $2, $3, $4, $5)`,
+      [
+        user.userId,
+        user.userName,
+        user.userEmail,
+        user.userPassword,
+        user.created,
+      ]
+    );
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  } finally {
+    await pg.end();
+  }
+};
+
+const createTable = (): void => {
+  const query = `CREATE TABLE student(id SERIAL PRIMARY KEY, firstname TEXT, lastname TEXT, age INT NOT NULL, address VARCHAR(255), email VARCHAR(50));`;
+  pg.query(query, (err, res) => {
+    try {
+      console.log(res);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+};
 
 const hostname = process.env.HOST;
 const port = Number(process.env.PORT);
@@ -93,6 +129,15 @@ const server = http.createServer((req, res) => {
         );
       }
     } else {
+      const user = {
+        userId: 1,
+        userName: 'Raven',
+        userEmail: 'blackraven@gmail.com',
+        userPassword: '1231234',
+        created: new Date(),
+      };
+      insertMember(user);
+
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(content, 'utf-8');
     }
