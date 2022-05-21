@@ -2,25 +2,9 @@ import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { Pool } from 'pg';
+import { parse } from 'querystring';
 
 dotenv.config();
-
-const pg = new Pool({
-  user: process.env.DB_NAME,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.PASSWORD,
-  port: Number(process.env.DB_PORT),
-});
-
-pg.query('SELECT * FROM member;', (err, res) => {
-  try {
-    console.log(res.rows);
-  } catch (error) {
-    console.error(err, error);
-  }
-});
 
 interface IUser {
   userId: number;
@@ -29,40 +13,6 @@ interface IUser {
   userPassword: string;
   created: Date;
 }
-
-const insertMember = async (user: IUser): Promise<boolean> => {
-  try {
-    await pg.connect();
-    await pg.query(
-      `INSERT INTO "member" ("id", "name", "email", "password", "created")  
-        VALUES ($1, $2, $3, $4, $5)`,
-      [
-        user.userId,
-        user.userName,
-        user.userEmail,
-        user.userPassword,
-        user.created,
-      ]
-    );
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  } finally {
-    await pg.end();
-  }
-};
-
-const createTable = (): void => {
-  const query = `CREATE TABLE student(id SERIAL PRIMARY KEY, firstname TEXT, lastname TEXT, age INT NOT NULL, address VARCHAR(255), email VARCHAR(50));`;
-  pg.query(query, (err, res) => {
-    try {
-      console.log(res);
-    } catch (error) {
-      console.error(error);
-    }
-  });
-};
 
 const hostname = process.env.HOST;
 const port = Number(process.env.PORT);
@@ -89,7 +39,40 @@ const server = http.createServer((req, res) => {
   let filePath = `.${req.url}`;
   filePath === './' && (filePath = './index.html');
 
-  console.log(filePath);
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+    'Access-Control-Max-Age': 2592000, // 30 days
+    'Access-Control-Allow-Headers': '*',
+  };
+
+  if (req.method === 'OPTIONS') {
+    console.log('OPTIONS');
+    res.writeHead(204, headers);
+    res.end();
+    return;
+  }
+
+  if (['GET', 'POST', 'DELETE'].includes(req.method || 'GET')) {
+    req.on('data', (chunk) => {
+      console.log(chunk.toString());
+    });
+
+    res.writeHead(200, headers);
+    res.end('Hello World');
+    return;
+  }
+
+  if (req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString(); // convert Buffer to string
+    });
+    req.on('end', () => {
+      console.log(`parse: ${parse(body)}`);
+      res.end('ok');
+    });
+  }
 
   let extname = String(path.extname(filePath)).toLowerCase();
   extname = extname.split('').splice(1, extname.length).join('');
@@ -136,7 +119,6 @@ const server = http.createServer((req, res) => {
         userPassword: '1231234',
         created: new Date(),
       };
-      insertMember(user);
 
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(content, 'utf-8');
