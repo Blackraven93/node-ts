@@ -46,33 +46,33 @@ const server = http.createServer((req, res) => {
     'Access-Control-Allow-Headers': '*',
   };
 
-  if (req.method === 'OPTIONS') {
-    console.log('OPTIONS');
-    res.writeHead(204, headers);
-    res.end();
-    return;
-  }
+  // if (req.method === 'OPTIONS') {
+  //   console.log('OPTIONS');
+  //   res.writeHead(204, headers);
+  //   res.end();
+  //   return;
+  // }
 
-  if (['GET', 'POST', 'DELETE'].includes(req.method || 'GET')) {
-    req.on('data', (chunk) => {
-      console.log(chunk.toString());
-    });
+  // if (['GET', 'POST', 'DELETE'].includes(req.method || 'GET')) {
+  //   req.on('data', (chunk) => {
+  //     console.log(chunk.toString());
+  //   });
 
-    res.writeHead(200, headers);
-    res.end('Hello World');
-    return;
-  }
+  //   res.writeHead(200, headers);
+  //   res.end();
+  //   return;
+  // }
 
-  if (req.method === 'POST') {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString(); // convert Buffer to string
-    });
-    req.on('end', () => {
-      console.log(`parse: ${parse(body)}`);
-      res.end('ok');
-    });
-  }
+  // if (req.method === 'POST') {
+  //   let body = '';
+  //   req.on('data', (chunk) => {
+  //     body += chunk.toString(); // convert Buffer to string
+  //   });
+  //   req.on('end', () => {
+  //     console.log(`parse: ${parse(body)}`);
+  //     res.end('ok');
+  //   });
+  // }
 
   let extname = String(path.extname(filePath)).toLowerCase();
   extname = extname.split('').splice(1, extname.length).join('');
