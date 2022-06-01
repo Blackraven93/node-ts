@@ -46,7 +46,7 @@ class Dict {
 }
 
 class Word {
-  constructor(public term: string, public def: string) {}
+  constructor(public readonly term: string, public readonly def: string) {}
 }
 
 const woody = new Word('woody', 'musician');
@@ -55,3 +55,53 @@ const dict = new Dict();
 
 dict.add(woody);
 console.log(dict.def('woody'));
+
+// MEMO:Interface
+// 특정 값을 지정할 수도 있고
+// 특정 타입들을 지정할 수도 있다.
+
+// type? Interface?
+// Interface = 오브젝트 모양
+// type =
+// interface {}
+
+type Team = {
+  team: string;
+};
+
+interface Person {
+  nickname: string;
+  team: Team;
+}
+
+interface Animal {
+  readonly name: string;
+}
+
+interface Person extends Animal {}
+
+class Tiger implements Animal {
+  constructor(readonly name: string) {}
+}
+
+interface SStorage<T> {
+  [key: string]: T;
+}
+
+class LocalStorage<T> {
+  private storage: SStorage<T> = {};
+  set(key: string, value: T) {
+    this.storage[key] = value;
+  }
+  remove(key: string) {
+    delete this.storage[key];
+  }
+  get(key: string): T {
+    return this.storage[key];
+  }
+  clear() {}
+}
+
+const stringStorage = new LocalStorage<string>();
+
+stringStorage.get('bird');
